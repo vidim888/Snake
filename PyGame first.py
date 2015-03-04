@@ -3,7 +3,7 @@ import pygame
 import time
 import random
 class Snake:
-    def __init__(self, number, snake_list, buff, lead_x, lead_y, lead_x_change, lead_y_change, snake_length, color):
+    def __init__(self, number, snake_list, buff, lead_x, lead_y, lead_x_change, lead_y_change, snake_length, direction, color):
         self.number = number
         self.snake_list = snake_list
         self.buff = buff
@@ -12,11 +12,13 @@ class Snake:
         self.lead_x_change = lead_x_change
         self.lead_y_change = lead_y_change
         self.snake_length = snake_length
+        self.direction = direction
         self.color = color
 pygame.init()
 white = (255, 255, 255)
 black = (0, 0, 0)
 red = (155, 0, 0)
+tongue_red = (255, 0, 0)
 green = (0, 155, 0)
 blue = (0, 0, 155)
 yellow = (0, 155, 155)
@@ -41,7 +43,6 @@ lead_y = display_height/2
 lead_x_change = 0
 lead_y_change = 0
 FPS = 30
-direction = 'up'
 clock = pygame.time.Clock()
 smallfont = pygame.font.SysFont("comicsansms", 25)
 medfont = pygame.font.SysFont("comicsansms", 50)
@@ -98,21 +99,40 @@ def gameIntro():
                         players_number = players_number % 4
         pygame.display.update()
         clock.tick(FPS)
-def snake(block_size, snake_list):
-    if direction == 'right':
-        head = pygame.transform.rotate(headImg, 270)
-    elif direction == 'left':
-        head = pygame.transform.rotate(headImg, 90)
-    elif direction == 'up':
-        head = headImg
-    elif direction == 'down':
-        head = pygame.transform.rotate(headImg, 180)
+def snake(block_size, snake_list, color, direction):
     for XnY in snake_list[:-1]:
-        pygame.draw.rect(gameDisplay, green, [XnY[0], XnY[1], block_size, block_size])
+        pygame.draw.rect(gameDisplay, color, [XnY[0], XnY[1], block_size, block_size])
     if block_size == 10:
-        gameDisplay.blit(head, (snake_list[-1][0], snake_list[-1][1]))
-    else:
-        pygame.draw.rect(gameDisplay, green, [snake_list[-1][0], snake_list[-1][1], block_size, block_size])
+        if direction == 'right':
+            for x in head_color:
+                pygame.Surface.set_at(gameDisplay, (int(snake_list[-1][0] - x[1] + 9), int(snake_list[-1][1] - x[0] + 9)), color)
+            for x in head_tongue:
+                pygame.Surface.set_at(gameDisplay, (int(snake_list[-1][0] - x[1] + 9), int(snake_list[-1][1] - x[0] + 9)), tongue_red)
+            for x in head_eyes:
+                pygame.Surface.set_at(gameDisplay, (int(snake_list[-1][0] - x[1] + 9), int(snake_list[-1][1] - x[0] + 9)), black)
+        elif direction == 'left':
+            for x in head_color:
+                pygame.Surface.set_at(gameDisplay, (int(snake_list[-1][0] + x[1]), int(snake_list[-1][1] + x[0])), color)
+            for x in head_tongue:
+                pygame.Surface.set_at(gameDisplay, (int(snake_list[-1][0] + x[1]), int(snake_list[-1][1] + x[0])), tongue_red)
+            for x in head_eyes:
+                pygame.Surface.set_at(gameDisplay, (int(snake_list[-1][0] + x[1]), int(snake_list[-1][1] + x[0])), black)
+        elif direction == 'up':
+            for x in head_color:
+                pygame.Surface.set_at(gameDisplay, (int(snake_list[-1][0] + x[0]), int(snake_list[-1][1] + x[1])), color)
+            for x in head_tongue:
+                pygame.Surface.set_at(gameDisplay, (int(snake_list[-1][0] + x[0]), int(snake_list[-1][1] + x[1])), tongue_red)
+            for x in head_eyes:
+                pygame.Surface.set_at(gameDisplay, (int(snake_list[-1][0] + x[0]), int(snake_list[-1][1] + x[1])), black)
+        elif direction == 'down':
+            for x in head_color:
+                pygame.Surface.set_at(gameDisplay, (int(snake_list[-1][0] - x[0] + 9), int(snake_list[-1][1] - x[1] + 9)), color)
+            for x in head_tongue:
+                pygame.Surface.set_at(gameDisplay, (int(snake_list[-1][0] - x[0] + 9), int(snake_list[-1][1] - x[1] + 9)), tongue_red)
+            for x in head_eyes:
+                pygame.Surface.set_at(gameDisplay, (int(snake_list[-1][0] - x[0] + 9), int(snake_list[-1][1] - x[1] + 9)), black)
+    #else:
+        #pygame.draw.rect(gameDisplay, green, [snake_list[-1][0], snake_list[-1][1], block_size, block_size])
 def text_objects(text, color, size):
     if size == 'small':
         textSurface = smallfont.render(text, True, color)
@@ -127,25 +147,24 @@ def message_to_screen(msg, color, y_displace=0, x_displace=0, size='small'):
     gameDisplay.blit(textSurf, textRect)
 def make_players(players_number):
     if players_number == 1:
-        first = Snake(1, [], False, display_width/2, display_height/2, 0, 0, 1, green)
+        first = Snake(1, [], False, display_width/2, display_height/2, 0, 0, 1, 'up', green)
         return([first])
     elif players_number == 2:
-        first = Snake(1, [], False, display_width/3, display_height/2, 0, 0, 1, green)
-        second = Snake(2, [], False, display_width*2/3, display_height/2, 0, 0, 1, red)
+        first = Snake(1, [], False, display_width/3, display_height/2, 0, 0, 1, 'up', green)
+        second = Snake(2, [], False, display_width*2/3, display_height/2, 0, 0, 1, 'up', red)
         return([first, second])
     elif players_number == 3:
-        first = Snake(1, [], False, display_width/4, display_height/2, 0, 0, 1, green)
-        second = Snake(2, [], False, display_width/2, display_height/2, 0, 0, 1, red)
-        third = Snake(3, [], False, display_width*3/4, display_height/2, 0, 0, 1, blue)
+        first = Snake(1, [], False, display_width/4, display_height/2, 0, 0, 1, 'up', green)
+        second = Snake(2, [], False, display_width/2, display_height/2, 0, 0, 1, 'up', red)
+        third = Snake(3, [], False, display_width*3/4, display_height/2, 0, 0, 1, 'up', blue)
         return([first, second, third])
     elif players_number == 4:
-        first = Snake(1, [], False, display_width/5, display_height/2, 0, 0, 1, green)
-        second = Snake(2, [], False, display_width*2/5, display_height/2, 0, 0, 1, red)
-        third = Snake(3, [], False, display_width*3/5, display_height/2, 0, 0, 1, blue)
-        fourth = Snake(4, [], False, display_width*4/5, display_height/2, 0, 0, 1, yellow)
+        first = Snake(1, [], False, display_width/5, display_height/2, 0, 0, 1, 'up', green)
+        second = Snake(2, [], False, display_width*2/5, display_height/2, 0, 0, 1, 'up', red)
+        third = Snake(3, [], False, display_width*3/5, display_height/2, 0, 0, 1, 'up', blue)
+        fourth = Snake(4, [], False, display_width*4/5, display_height/2, 0, 0, 1, 'up', yellow)
         return([first, second, third, fourth])
 def gameLoop(players_number):
-    global direction
     gameExit = False
     gameOver = False
     lead_x = display_width/2
@@ -173,59 +192,71 @@ def gameLoop(players_number):
                         gameExit = True
                         gameOver = False
                     if event.key == pygame.K_c:
-                        gameLoop()
+                        gameLoop(players_number)
+                    if event.key == pygame.K_p:
+                        gameIntro()
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 gameExit = True
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_LEFT:
-                    if lead_x_change == 0:
-                        direction = 'left'
-                        lead_x_change = -block_size
-                        lead_y_change = 0
+                    if list_of_players[0].lead_x_change == 0:
+                        list_of_players[0].direction = 'left'
+                        list_of_players[0].lead_x_change = -block_size
+                        list_of_players[0].lead_y_change = 0
                 elif event.key == pygame.K_RIGHT:
-                    if lead_x_change == 0:
-                        direction = 'right'
-                        lead_x_change = block_size
-                        lead_y_change = 0
+                    if list_of_players[0].lead_x_change == 0:
+                        list_of_players[0].direction = 'right'
+                        list_of_players[0].lead_x_change = block_size
+                        list_of_players[0].lead_y_change = 0
                 elif event.key == pygame.K_UP:
-                    if lead_y_change == 0:
-                        direction = 'up'
-                        lead_y_change = -block_size
-                        lead_x_change = 0
+                    if list_of_players[0].lead_y_change == 0:
+                        list_of_players[0].direction = 'up'
+                        list_of_players[0].lead_y_change = -block_size
+                        list_of_players[0].lead_x_change = 0
                 elif event.key == pygame.K_DOWN:
-                    if lead_y_change == 0:
-                        direction = 'down'
-                        lead_y_change = block_size
-                        lead_x_change = 0
+                    if list_of_players[0].lead_y_change == 0:
+                        list_of_players[0].direction = 'down'
+                        list_of_players[0].lead_y_change = block_size
+                        list_of_players[0].lead_x_change = 0
                 elif event.key == pygame.K_p:
                     pause()
-        if lead_x >= display_width or lead_x < 0 or lead_y >= display_height or lead_y < 0:
+        if list_of_players[0].lead_x >= display_width or list_of_players[0].lead_x < 0 \
+                or list_of_players[0].lead_y >= display_height or list_of_players[0].lead_y < 0:
             gameOver = True
             #  print(event)
-        lead_x += lead_x_change
-        lead_y += lead_y_change
+        list_of_players[0].lead_x += list_of_players[0].lead_x_change
+        list_of_players[0].lead_y += list_of_players[0].lead_y_change
         gameDisplay.fill(white)
         if AppleThickness == 10:
             gameDisplay.blit(appleImg, (randAppleX, randAppleY))
         else:
             pygame.draw.rect(gameDisplay, red, [randAppleX, randAppleY, AppleThickness, AppleThickness])
-        snakeHead = []
-        snakeHead.append(lead_x)
-        snakeHead.append(lead_y)
-        snake_list.append(snakeHead)
-        if len(snake_list) > snake_length:
-            del snake_list[0]
-        for eachSegment in snake_list[:-1]:
+        for player in list_of_players:
+            snakeHead = []
+            snakeHead.append(player.lead_x)
+            snakeHead.append(player.lead_y)
+            player.snake_list.append(snakeHead)
+        #snakeHead = []
+        #snakeHead.append(lead_x)
+        #snakeHead.append(lead_y)
+        #snake_list.append(snakeHead)
+        if len(list_of_players[0].snake_list) > list_of_players[0].snake_length:
+            del list_of_players[0].snake_list[0]
+        for eachSegment in list_of_players[0].snake_list[:-1]:
             if eachSegment == snakeHead:
                 gameOver = True
-        snake(block_size, snake_list)
+        for player in list_of_players:
+            snake(block_size, player.snake_list, player.color, list_of_players[0].direction)
+        #snake(block_size, snake_list, green)
         score(snake_length - 1)
         pygame.display.update()
-        if lead_x >= randAppleX and lead_x < randAppleX + AppleThickness or lead_x + block_size > randAppleX and lead_x + block_size <= randAppleX + AppleThickness:
-            if lead_y >= randAppleY and lead_y < randAppleY + AppleThickness or lead_y + block_size > randAppleY and lead_y + block_size <= randAppleY + AppleThickness:
+        if list_of_players[0].lead_x >= randAppleX and list_of_players[0].lead_x < randAppleX + AppleThickness \
+                or list_of_players[0].lead_x + block_size > randAppleX and list_of_players[0].lead_x + block_size <= randAppleX + AppleThickness:
+            if list_of_players[0].lead_y >= randAppleY and list_of_players[0].lead_y < randAppleY + AppleThickness \
+                    or list_of_players[0].lead_y + block_size > randAppleY and list_of_players[0].lead_y + block_size <= randAppleY + AppleThickness:
                 randAppleX, randAppleY = randAppleGen()
-                snake_length += 1
+                list_of_players[0].snake_length += 1
         clock.tick(FPS)
     pygame.quit()
     quit()
