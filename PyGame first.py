@@ -71,7 +71,7 @@ def pause():
                 elif event.key == pygame.K_q:
                     pygame.quit()
                     quit()
-        clock.tick(5)
+        clock.tick(FPS)
 def score(score, player_number):
     text = smallfont.render("Score: "+str(score), True, black)
     gameDisplay.blit(text, [200*(player_number - 1) + 50, 3])
@@ -214,71 +214,73 @@ def controls(list_of_players):
                         list_of_players[0].direction = 'down'
                         list_of_players[0].lead_y_change = block_size
                         list_of_players[0].lead_x_change = 0
-            if list_of_players[1].death == False:
-                if event.key == pygame.K_a:
-                    if list_of_players[1].lead_x_change == 0:
-                        list_of_players[1].direction = 'left'
-                        list_of_players[1].lead_x_change = -block_size
-                        list_of_players[1].lead_y_change = 0
-                elif event.key == pygame.K_d:
-                    if list_of_players[1].lead_x_change == 0:
-                        list_of_players[1].direction = 'right'
-                        list_of_players[1].lead_x_change = block_size
-                        list_of_players[1].lead_y_change = 0
-                elif event.key == pygame.K_w:
-                    if list_of_players[1].lead_y_change == 0:
-                        list_of_players[1].direction = 'up'
-                        list_of_players[1].lead_y_change = -block_size
-                        list_of_players[1].lead_x_change = 0
-                elif event.key == pygame.K_s:
-                    if list_of_players[1].lead_y_change == 0:
-                        list_of_players[1].direction = 'down'
-                        list_of_players[1].lead_y_change = block_size
-                        list_of_players[1].lead_x_change = 0
-            if list_of_players[2].death == False:
-                if event.key == pygame.K_g:
-                    if list_of_players[2].lead_x_change == 0:
-                        list_of_players[2].direction = 'left'
-                        list_of_players[2].lead_x_change = -block_size
-                        list_of_players[2].lead_y_change = 0
-                elif event.key == pygame.K_j:
-                    if list_of_players[2].lead_x_change == 0:
-                        list_of_players[2].direction = 'right'
-                        list_of_players[2].lead_x_change = block_size
-                        list_of_players[2].lead_y_change = 0
-                elif event.key == pygame.K_y:
-                    if list_of_players[2].lead_y_change == 0:
-                        list_of_players[2].direction = 'up'
-                        list_of_players[2].lead_y_change = -block_size
-                        list_of_players[2].lead_x_change = 0
-                elif event.key == pygame.K_h:
-                    if list_of_players[2].lead_y_change == 0:
-                        list_of_players[2].direction = 'down'
-                        list_of_players[2].lead_y_change = block_size
-                        list_of_players[2].lead_x_change = 0
-            if list_of_players[3].death == False:
-                if event.key == pygame.K_k:
-                    if list_of_players[3].lead_x_change == 0:
-                        list_of_players[3].direction = 'left'
-                        list_of_players[3].lead_x_change = -block_size
-                        list_of_players[3].lead_y_change = 0
-                elif event.key == pygame.K_SEMICOLON:
-                    if list_of_players[3].lead_x_change == 0:
-                        list_of_players[3].direction = 'right'
-                        list_of_players[3].lead_x_change = block_size
-                        list_of_players[3].lead_y_change = 0
-                elif event.key == pygame.K_o:
-                    if list_of_players[3].lead_y_change == 0:
-                        list_of_players[3].direction = 'up'
-                        list_of_players[3].lead_y_change = -block_size
-                        list_of_players[3].lead_x_change = 0
-                elif event.key == pygame.K_l:
-                    if list_of_players[3].lead_y_change == 0:
-                        list_of_players[3].direction = 'down'
-                        list_of_players[3].lead_y_change = block_size
-                        list_of_players[3].lead_x_change = 0
-
-            elif event.key == pygame.K_p:
+            if len(list_of_players) >= 2:
+                if list_of_players[1].death == False:
+                    if event.key == pygame.K_a:
+                        if list_of_players[1].lead_x_change == 0:
+                            list_of_players[1].direction = 'left'
+                            list_of_players[1].lead_x_change = -block_size
+                            list_of_players[1].lead_y_change = 0
+                    elif event.key == pygame.K_d:
+                        if list_of_players[1].lead_x_change == 0:
+                            list_of_players[1].direction = 'right'
+                            list_of_players[1].lead_x_change = block_size
+                            list_of_players[1].lead_y_change = 0
+                    elif event.key == pygame.K_w:
+                        if list_of_players[1].lead_y_change == 0:
+                            list_of_players[1].direction = 'up'
+                            list_of_players[1].lead_y_change = -block_size
+                            list_of_players[1].lead_x_change = 0
+                    elif event.key == pygame.K_s:
+                        if list_of_players[1].lead_y_change == 0:
+                            list_of_players[1].direction = 'down'
+                            list_of_players[1].lead_y_change = block_size
+                            list_of_players[1].lead_x_change = 0
+            if len(list_of_players) >= 3:
+                if list_of_players[2].death == False:
+                    if event.key == pygame.K_g:
+                        if list_of_players[2].lead_x_change == 0:
+                            list_of_players[2].direction = 'left'
+                            list_of_players[2].lead_x_change = -block_size
+                            list_of_players[2].lead_y_change = 0
+                    elif event.key == pygame.K_j:
+                        if list_of_players[2].lead_x_change == 0:
+                            list_of_players[2].direction = 'right'
+                            list_of_players[2].lead_x_change = block_size
+                            list_of_players[2].lead_y_change = 0
+                    elif event.key == pygame.K_y:
+                        if list_of_players[2].lead_y_change == 0:
+                            list_of_players[2].direction = 'up'
+                            list_of_players[2].lead_y_change = -block_size
+                            list_of_players[2].lead_x_change = 0
+                    elif event.key == pygame.K_h:
+                        if list_of_players[2].lead_y_change == 0:
+                            list_of_players[2].direction = 'down'
+                            list_of_players[2].lead_y_change = block_size
+                            list_of_players[2].lead_x_change = 0
+            if len(list_of_players) >= 4:
+                if list_of_players[3].death == False:
+                    if event.key == pygame.K_k:
+                        if list_of_players[3].lead_x_change == 0:
+                            list_of_players[3].direction = 'left'
+                            list_of_players[3].lead_x_change = -block_size
+                            list_of_players[3].lead_y_change = 0
+                    elif event.key == pygame.K_SEMICOLON:
+                        if list_of_players[3].lead_x_change == 0:
+                            list_of_players[3].direction = 'right'
+                            list_of_players[3].lead_x_change = block_size
+                            list_of_players[3].lead_y_change = 0
+                    elif event.key == pygame.K_o:
+                        if list_of_players[3].lead_y_change == 0:
+                            list_of_players[3].direction = 'up'
+                            list_of_players[3].lead_y_change = -block_size
+                            list_of_players[3].lead_x_change = 0
+                    elif event.key == pygame.K_l:
+                        if list_of_players[3].lead_y_change == 0:
+                            list_of_players[3].direction = 'down'
+                            list_of_players[3].lead_y_change = block_size
+                            list_of_players[3].lead_x_change = 0
+            if event.key == pygame.K_p:
                 pause()
 def gameLoop(players_number):
     gameExit = False
@@ -312,20 +314,24 @@ def gameLoop(players_number):
         for player in list_of_players:
             if player.lead_x >= display_width or player.lead_x < 0 \
                     or player.lead_y >= display_height or player.lead_y < 0:
-                gameOver = True
+                player.death = True
             player.lead_x += player.lead_x_change
             player.lead_y += player.lead_y_change
-            snakeHead = []
-            snakeHead.append(player.lead_x)
-            snakeHead.append(player.lead_y)
-            player.snake_list.append(snakeHead)
+            if player.death == False:
+                snakeHead = []
+                snakeHead.append(player.lead_x)
+                snakeHead.append(player.lead_y)
+                player.snake_list.append(snakeHead)
             if len(player.snake_list) > player.snake_length:
                 del player.snake_list[0]
             for all_players in list_of_players:
                 for eachSegment in all_players.snake_list[:-1]:
                     if eachSegment == snakeHead:
                         player.death = True
-                        # gameOver = True
+                if all_players.death:
+                    if player.lead_x >= all_players.apple_x and player.lead_x < all_players.apple_x + AppleThickness or player.lead_x + block_size > all_players.apple_x and player.lead_x + block_size <= all_players.apple_x + AppleThickness:
+                        if player.lead_y >= all_players.apple_y and player.lead_y < all_players.apple_y + AppleThickness or player.lead_y + block_size > all_players.apple_y and player.lead_y + block_size <= all_players.apple_y + AppleThickness:
+                            player.death = True
             if player.death == True:
                 player.lead_x_change = 0
                 player.lead_y_change = 0
@@ -339,6 +345,8 @@ def gameLoop(players_number):
                     player.snake_length += 1
             score(player.snake_length - 1, player.number)
             apple_draw(player.apple_x, player.apple_y, player.color, AppleThickness)
+        if list_of_players[0].death and list_of_players[1].death and list_of_players[2].death and list_of_players[3].death :
+            gameOver = True
         pygame.display.update()
         clock.tick(FPS)
     pygame.quit()
