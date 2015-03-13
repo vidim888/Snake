@@ -187,6 +187,27 @@ def make_players(players_number):
         third = Snake(3, display_width*3/5-((display_width*3/5)%block_size), display_height/2, blue)
         fourth = Snake(4, display_width*4/5-((display_width*4/5)%block_size), display_height/2, yellow)
         return([first, second, third, fourth])
+def death_check(list_of_players):
+    if len(list_of_players) == 1:
+        if list_of_players[0].death:
+            return(True)
+        else:
+            return(False)
+    elif len(list_of_players) == 2:
+        if list_of_players[0].death and list_of_players[1].death:
+            return(True)
+        else:
+            return(False)
+    elif len(list_of_players) == 3:
+        if list_of_players[0].death and list_of_players[1].death and list_of_players[2].death:
+            return(True)
+        else:
+            return(False)
+    elif len(list_of_players) == 4:
+        if list_of_players[0].death and list_of_players[1].death and list_of_players[2].death and list_of_players[3].death:
+            return(True)
+        else:
+            return(False)
 def controls(list_of_players):
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
@@ -290,9 +311,15 @@ def gameLoop(players_number):
         player.apple_x, player.apple_y = randAppleGen()
     while not gameExit:
         if gameOver == True:
-            gameDisplay.fill(white)
+            # gameDisplay.fill(white)
             message_to_screen("Game Over", red, -50, size='large')
             message_to_screen("Press C to Play Again or Q to Quit", black, 50, size='medium')
+            finish_score = []
+            for player in list_of_players:
+                x = player.snake_length - 1
+                finish_score.append(x)
+            y = max(finish_score)
+            message_to_screen("Player with " + str(y) + " points has won!", black, 150)
             for player in list_of_players:
                 score(player.snake_length - 1, player.number)
             pygame.display.update()
@@ -345,8 +372,7 @@ def gameLoop(players_number):
                     player.snake_length += 1
             score(player.snake_length - 1, player.number)
             apple_draw(player.apple_x, player.apple_y, player.color, AppleThickness)
-        if list_of_players[0].death and list_of_players[1].death and list_of_players[2].death and list_of_players[3].death :
-            gameOver = True
+        gameOver = death_check(list_of_players)
         pygame.display.update()
         clock.tick(FPS)
     pygame.quit()
