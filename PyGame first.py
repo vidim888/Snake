@@ -10,7 +10,7 @@ class Snake:
         self.lead_x = lead_x
         self.lead_y = lead_y
         self.lead_x_change = 0
-        self.lead_y_change = 0
+        self.lead_y_change = -10
         self.snake_length = 1
         self.direction = 'up'
         self.color = color
@@ -49,6 +49,8 @@ apple_black = [[4, 9], [5, 9]]
 appleImg = pygame.image.load('C:/Users/Vadim/Desktop/New folder/GraphicsGale/pictures of that/Apple.png')
 block_size = 10
 AppleThickness = 10
+map_dying_coefficient = 10
+dead_blocks_number = 10
 gameExit = False
 FPS = 30
 clock = pygame.time.Clock()
@@ -175,11 +177,25 @@ def message_to_screen(msg, color, y_displace=0, x_displace=0, size='small'):
 def make_blocks():
     all_blocks = []
     block_coefficient = []
-    for y in range(display_height/10):
-        for x in range(display_width/10):
+    for y in range(-1, int(display_height/10)+1):
+        for x in range(-1, int(display_width/10)+1):
             block = [x*10, y*10]
             all_blocks.append(block)
             block_coefficient.append(0)
+    return all_blocks, block_coefficient
+def block_black(all_blocks, block_coefficient, snakeHead, dead_blocks):
+    indexx = all_blocks.index(snakeHead)
+    block_coefficient[indexx] += map_dying_coefficient
+    if block_coefficient[indexx] >= 255:
+        dead_blocks.append(all_blocks[indexx])
+def draw_blocks(all_blocks, blocks_coefficients, dead_blocks):
+    for coefficient, every_block in zip(blocks_coefficients, all_blocks):
+        if coefficient >= 255:
+            pygame.draw.rect(gameDisplay, (0, 0, 0), [every_block[0], every_block[1], 10, 10])
+        else:
+            pygame.draw.rect(gameDisplay, (255, 255 - coefficient, 255), [every_block[0], every_block[1], 10, 10])
+    for every_block in dead_blocks:
+        pygame.draw.rect(gameDisplay, (0, 0, 0), [every_block[0], every_block[1], 10, 10])
 def make_players(players_number):
     if players_number == 1:
         first = Snake(1, display_width/2-((display_width/2)%block_size), display_height/2, green)
@@ -319,6 +335,13 @@ def gameLoop(players_number):
     gameExit = False
     gameOver = False
     list_of_players = make_players(players_number)
+    all_blocks, block_coefficient = make_blocks()
+    dead_blocks = []
+    for block in range(dead_blocks_number):
+        block_x = 10*random.randint(0, int(display_width/10))
+        block_y = 10*random.randint(0, int(display_height/10))
+        block = [block_x, block_y]
+        dead_blocks.append(block)
     for player in list_of_players:
         player.apple_x, player.apple_y = randAppleGen()
     while not gameExit:
@@ -350,32 +373,38 @@ def gameLoop(players_number):
                         gameIntro()
         controls(list_of_players)
         gameDisplay.fill(white)
+        draw_blocks(all_blocks, block_coefficient, dead_blocks)
         for player in list_of_players:
             if player.lead_x >= display_width or player.lead_x < 0 \
                     or player.lead_y >= display_height or player.lead_y < 0:
                 player.death = True
             player.lead_x += player.lead_x_change
             player.lead_y += player.lead_y_change
+            if len(player.snake_list) > player.snake_length:
+                del player.snake_list[0]
             if player.death == False:
                 snakeHead = []
                 snakeHead.append(player.lead_x)
                 snakeHead.append(player.lead_y)
                 player.snake_list.append(snakeHead)
-            if len(player.snake_list) > player.snake_length:
-                del player.snake_list[0]
+                for every_block in dead_blocks:
+                    if player.lead_x == every_block[0] and player.lead_y == every_block[1]:
+                        player.death = True
+                block_black(all_blocks, block_coefficient, snakeHead, dead_blocks)
             for all_players in list_of_players:
                 for eachSegment in all_players.snake_list[:-1]:
                     if eachSegment == snakeHead:
                         player.death = True
                 if all_players.death:
-                    if player.lead_x >= all_players.apple_x and player.lead_x < all_players.apple_x + AppleThickness or player.lead_x + block_size > all_players.apple_x and player.lead_x + block_size <= all_players.apple_x + AppleThickness:
-                        if player.lead_y >= all_players.apple_y and player.lead_y < all_players.apple_y + AppleThickness or player.lead_y + block_size > all_players.apple_y and player.lead_y + block_size <= all_players.apple_y + AppleThickness:
+                    if player.lead_x >= all_players.apple_x and player.lead_x < all_players.apple_x + AppleThickness or\
+                                                    player.lead_x + block_size > all_players.apple_x and player.lead_x + block_size <= all_players.apple_x + AppleThickness:
+                        if player.lead_y >= all_players.apple_y and player.lead_y < all_players.apple_y + AppleThickness or\
+                                                        player.lead_y + block_size > all_players.apple_y and player.lead_y + block_size <= all_players.apple_y + AppleThickness:
                             player.death = True
             if player.death == True:
                 player.lead_x_change = 0
                 player.lead_y_change = 0
                 player.color = black
-            snake(block_size, player.snake_list, player.color, player.direction)
             if player.lead_x >= player.apple_x and player.lead_x < player.apple_x + AppleThickness \
                     or player.lead_x + block_size > player.apple_x and player.lead_x + block_size <= player.apple_x + AppleThickness:
                 if player.lead_y >= player.apple_y and player.lead_y < player.apple_y + AppleThickness \
@@ -384,6 +413,7 @@ def gameLoop(players_number):
                     player.snake_length += 1
             score(player.snake_length - 1, player.number)
             apple_draw(player.apple_x, player.apple_y, player.color, AppleThickness)
+            snake(block_size, player.snake_list, player.color, player.direction)
         gameOver = death_check(list_of_players)
         pygame.display.update()
         clock.tick(FPS)
