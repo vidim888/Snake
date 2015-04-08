@@ -80,7 +80,11 @@ def randAppleGen():
     while not found:
         randAppleX = round(random.randrange(0, display_width - AppleThickness)/AppleThickness)*AppleThickness
         randAppleY = round(random.randrange(0, display_height - AppleThickness)/AppleThickness)*AppleThickness
-        if pygame.Surface.get_at(gameDisplay, (int(randAppleX + 5), int(randAppleY + 5))) == (255, 255, 255):
+        if pygame.Surface.get_at(gameDisplay, (int(randAppleX + 5), int(randAppleY + 5))) != black and \
+                        pygame.Surface.get_at(gameDisplay, (int(randAppleX + 5), int(randAppleY + 5))) != green and \
+                        pygame.Surface.get_at(gameDisplay, (int(randAppleX + 5), int(randAppleY + 5))) != red and \
+                        pygame.Surface.get_at(gameDisplay, (int(randAppleX + 5), int(randAppleY + 5))) != yellow and \
+                        pygame.Surface.get_at(gameDisplay, (int(randAppleX + 5), int(randAppleY + 5))) != blue:
             print(pygame.Surface.get_at(gameDisplay, (int(randAppleX + 5), int(randAppleY + 5))))
             found = True
     return randAppleX, randAppleY
@@ -168,6 +172,14 @@ def message_to_screen(msg, color, y_displace=0, x_displace=0, size='small'):
     textSurf, textRect = text_objects(msg, color, size)
     textRect.center = ((display_width / 2) + x_displace), ((display_height / 2) + y_displace)
     gameDisplay.blit(textSurf, textRect)
+def make_blocks():
+    all_blocks = []
+    block_coefficient = []
+    for y in range(display_height/10):
+        for x in range(display_width/10):
+            block = [x*10, y*10]
+            all_blocks.append(block)
+            block_coefficient.append(0)
 def make_players(players_number):
     if players_number == 1:
         first = Snake(1, display_width/2-((display_width/2)%block_size), display_height/2, green)
