@@ -6,16 +6,18 @@ class Snake:
     def __init__(self, number, lead_x, lead_y, color):
         self.number = number
         self.snake_list = []
-        self.buff = False
+        self.buff = [0, 0, 0, 0, 0]
         self.lead_x = lead_x
         self.lead_y = lead_y
         self.lead_x_change = 0
         self.lead_y_change = -10
         self.snake_length = 1
+        self.score_per_apple = 1
         self.direction = 'up'
         self.color = color
         self.apple_x = 0
         self.apple_y = 0
+        self.AppleThickness = 10
         self.death = False
 pygame.init()
 white = (255, 255, 255)
@@ -26,6 +28,7 @@ green = (0, 155, 0)
 leaf_green = (0, 255, 0)
 blue = (0, 0, 155)
 yellow = (155, 155, 0)
+buff_apple_colors = [red, green, blue, yellow]
 display_width = 800
 display_height = 600
 gameDisplay = pygame.display.set_mode((display_width, display_height))
@@ -46,6 +49,7 @@ apple_color = [[2, 3], [3, 3], [6, 3], [7, 3], [1, 4], [2, 4], [3, 4], [4, 4], [
 apple_leaf = [[1, 0], [2, 0], [7, 0], [1, 1], [2, 1], [3, 1], [6, 1], [7, 1], [8, 1], [2, 2], [3, 2], [4, 2], [5, 2],
               [6, 2], [7, 2], [4, 3], [5, 3]]
 apple_black = [[4, 9], [5, 9]]
+# buff = [fast, slow, scorex2, applex2, immortal]
 appleImg = pygame.image.load('C:/Users/Vadim/Desktop/New folder/GraphicsGale/pictures of that/Apple.png')
 block_size = 10
 AppleThickness = 10
@@ -53,6 +57,7 @@ map_dying_coefficient = 10
 dead_blocks_number = 10
 gameExit = False
 FPS = 30
+frames_buff_works = 1000
 clock = pygame.time.Clock()
 smallfont = pygame.font.SysFont("comicsansms", 25)
 medfont = pygame.font.SysFont("comicsansms", 50)
@@ -74,20 +79,19 @@ def pause():
                     pygame.quit()
                     quit()
         clock.tick(FPS)
-def score(score, player_number):
-    text = smallfont.render("Score: "+str(score), True, black)
+def score(score, player_number, color):
+    text = smallfont.render("Score: "+str(score), True, color)
     gameDisplay.blit(text, [200*(player_number - 1) + 50, 3])
 def randAppleGen():
     found = False
     while not found:
-        randAppleX = round(random.randrange(0, display_width - AppleThickness)/AppleThickness)*AppleThickness
-        randAppleY = round(random.randrange(0, display_height - AppleThickness)/AppleThickness)*AppleThickness
+        randAppleX = round(random.randrange(AppleThickness, display_width - 2*AppleThickness)/AppleThickness)*AppleThickness
+        randAppleY = round(random.randrange(AppleThickness, display_height - 2*AppleThickness)/AppleThickness)*AppleThickness
         if pygame.Surface.get_at(gameDisplay, (int(randAppleX + 5), int(randAppleY + 5))) != black and \
                         pygame.Surface.get_at(gameDisplay, (int(randAppleX + 5), int(randAppleY + 5))) != green and \
                         pygame.Surface.get_at(gameDisplay, (int(randAppleX + 5), int(randAppleY + 5))) != red and \
                         pygame.Surface.get_at(gameDisplay, (int(randAppleX + 5), int(randAppleY + 5))) != yellow and \
                         pygame.Surface.get_at(gameDisplay, (int(randAppleX + 5), int(randAppleY + 5))) != blue:
-            print(pygame.Surface.get_at(gameDisplay, (int(randAppleX + 5), int(randAppleY + 5))))
             found = True
     return randAppleX, randAppleY
 def gameIntro():
@@ -160,8 +164,25 @@ def apple_draw(apple_x, apple_y, color, size):
             pygame.Surface.set_at(gameDisplay, (int(apple_x + x[0]), int(apple_y + x[1])), black)
         for x in apple_leaf:
             pygame.Surface.set_at(gameDisplay, (int(apple_x + x[0]), int(apple_y + x[1])), leaf_green)
+    elif size % 10 == 0:
+        k = int(size/10)
+        for x in apple_color:
+            pygame.Surface.set_at(gameDisplay, (int(apple_x + k*x[0]), int(apple_y + k*x[1])), color)
+            pygame.Surface.set_at(gameDisplay, (int(apple_x + k*x[0] + 1), int(apple_y + k*x[1])), color)
+            pygame.Surface.set_at(gameDisplay, (int(apple_x + k*x[0]), int(apple_y + k*x[1] + 1)), color)
+            pygame.Surface.set_at(gameDisplay, (int(apple_x + k*x[0] + 1), int(apple_y + k*x[1] + 1)), color)
+        for x in apple_black:
+            pygame.Surface.set_at(gameDisplay, (int(apple_x + k*x[0]), int(apple_y + k*x[1])), black)
+            pygame.Surface.set_at(gameDisplay, (int(apple_x + k*x[0] + 1), int(apple_y + k*x[1])), black)
+            pygame.Surface.set_at(gameDisplay, (int(apple_x + k*x[0]), int(apple_y + k*x[1] + 1)), black)
+            pygame.Surface.set_at(gameDisplay, (int(apple_x + k*x[0] + 1), int(apple_y + k*x[1] + 1)), black)
+        for x in apple_leaf:
+            pygame.Surface.set_at(gameDisplay, (int(apple_x + k*x[0]), int(apple_y + k*x[1])), leaf_green)
+            pygame.Surface.set_at(gameDisplay, (int(apple_x + k*x[0] + 1), int(apple_y + k*x[1])), leaf_green)
+            pygame.Surface.set_at(gameDisplay, (int(apple_x + k*x[0]), int(apple_y + k*x[1] + 1)), leaf_green)
+            pygame.Surface.set_at(gameDisplay, (int(apple_x + k*x[0] + 1), int(apple_y + k*x[1] + 1)), leaf_green)
     else:
-        pygame.draw.rect(gameDisplay, red, [randAppleX, randAppleY, AppleThickness, AppleThickness])
+        pygame.draw.rect(gameDisplay, red, [randAppleX, randAppleY, size, size])
 def text_objects(text, color, size):
     if size == 'small':
         textSurface = smallfont.render(text, True, color)
@@ -337,6 +358,8 @@ def gameLoop(players_number):
     list_of_players = make_players(players_number)
     all_blocks, block_coefficient = make_blocks()
     dead_blocks = []
+    buff_apple = False
+    buff_apple_color_number = 0
     for block in range(dead_blocks_number):
         block_x = 10*random.randint(0, int(display_width/10))
         block_y = 10*random.randint(0, int(display_height/10))
@@ -356,7 +379,7 @@ def gameLoop(players_number):
             y = max(finish_score)
             message_to_screen("Player with " + str(y) + " points has won!", black, 150)
             for player in list_of_players:
-                score(player.snake_length - 1, player.number)
+                score(player.snake_length - 1, player.number, player.color)
             pygame.display.update()
         while gameOver == True:
             for event in pygame.event.get():
@@ -372,8 +395,16 @@ def gameLoop(players_number):
                     if event.key == pygame.K_p:
                         gameIntro()
         controls(list_of_players)
+        if buff_apple == False:
+            random_number = random.randint(1, 1000)
+            if random_number == 1000:
+                buff_apple = True
+                buff_apple_x, buff_apple_y = randAppleGen()
         gameDisplay.fill(white)
-        draw_blocks(all_blocks, block_coefficient, dead_blocks)
+        draw_blocks(all_blocks, block_coefficient, dead_blocks)  # Draw after this!
+        if buff_apple == True:
+            buff_apple_color_number += 1
+            apple_draw(buff_apple_x, buff_apple_y, buff_apple_colors[buff_apple_color_number % 4], AppleThickness)
         for player in list_of_players:
             if player.lead_x >= display_width or player.lead_x < 0 \
                     or player.lead_y >= display_height or player.lead_y < 0:
@@ -396,23 +427,57 @@ def gameLoop(players_number):
                     if eachSegment == snakeHead:
                         player.death = True
                 if all_players.death:
-                    if player.lead_x >= all_players.apple_x and player.lead_x < all_players.apple_x + AppleThickness or\
+                    if player.lead_x >= all_players.apple_x and player.lead_x < all_players.apple_x + all_players.AppleThickness or\
                                                     player.lead_x + block_size > all_players.apple_x and player.lead_x + block_size <= all_players.apple_x + AppleThickness:
-                        if player.lead_y >= all_players.apple_y and player.lead_y < all_players.apple_y + AppleThickness or\
+                        if player.lead_y >= all_players.apple_y and player.lead_y < all_players.apple_y + all_players.AppleThickness or\
                                                         player.lead_y + block_size > all_players.apple_y and player.lead_y + block_size <= all_players.apple_y + AppleThickness:
                             player.death = True
             if player.death == True:
                 player.lead_x_change = 0
                 player.lead_y_change = 0
                 player.color = black
-            if player.lead_x >= player.apple_x and player.lead_x < player.apple_x + AppleThickness \
-                    or player.lead_x + block_size > player.apple_x and player.lead_x + block_size <= player.apple_x + AppleThickness:
-                if player.lead_y >= player.apple_y and player.lead_y < player.apple_y + AppleThickness \
-                        or player.lead_y + block_size > player.apple_y and player.lead_y + block_size <= player.apple_y + AppleThickness:
+            if player.lead_x >= player.apple_x and player.lead_x < player.apple_x + player.AppleThickness \
+                    or player.lead_x + block_size > player.apple_x and player.lead_x + block_size <= player.apple_x + player.AppleThickness:
+                if player.lead_y >= player.apple_y and player.lead_y < player.apple_y + player.AppleThickness \
+                        or player.lead_y + block_size > player.apple_y and player.lead_y + block_size <= player.apple_y + player.AppleThickness:
                     player.apple_x, player.apple_y = randAppleGen()
-                    player.snake_length += 1
-            score(player.snake_length - 1, player.number)
-            apple_draw(player.apple_x, player.apple_y, player.color, AppleThickness)
+                    player.snake_length += player.score_per_apple
+            if buff_apple == True:
+                if player.lead_x >= buff_apple_x and player.lead_x < buff_apple_x + AppleThickness \
+                        or player.lead_x + block_size > buff_apple_x and player.lead_x + block_size <= buff_apple_x + AppleThickness:
+                    if player.lead_y >= buff_apple_y and player.lead_y < buff_apple_y + AppleThickness \
+                            or player.lead_y + block_size > buff_apple_y and player.lead_y + block_size <= buff_apple_y + AppleThickness:
+                        buff_apple = False
+                        # buff_number = random.randint(1, 5)
+                        buff_number = random.randint(3, 4)
+                        if buff_number == 1:
+                            player.buff[buff_number] += int(frames_buff_works*0.3)
+                        elif buff_number == 2:
+                            player.buff[buff_number] += int(frames_buff_works*0.4)
+                        elif buff_number == 3:
+                            player.buff[buff_number] += int(frames_buff_works)
+                            player.score_per_apple = 2
+                        elif buff_number == 4:
+                            player.buff[buff_number] += int(frames_buff_works*0.5)
+                            player.AppleThickness = AppleThickness*2
+                        elif buff_number == 5:
+                            player.buff[buff_number] += int(frames_buff_works*0.2)
+            for number, time in enumerate(player.buff):
+                if time >= 1:
+                    time -= 1
+                    if time == 0:
+                        if number == 1:
+                            pass
+                        elif number == 2:
+                            pass
+                        elif number == 3:
+                            player.score_per_apple = 1
+                        elif number == 4:
+                            player.AppleThickness = AppleThickness
+                        elif number == 5:
+                            pass
+            score(player.snake_length - 1, player.number, player.color)
+            apple_draw(player.apple_x, player.apple_y, player.color, player.AppleThickness)
             snake(block_size, player.snake_list, player.color, player.direction)
         gameOver = death_check(list_of_players)
         pygame.display.update()
