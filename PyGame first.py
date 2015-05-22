@@ -19,6 +19,7 @@ class Snake:
         self.apple_y = 0
         self.AppleThickness = 10
         self.death = False
+        self.immortality = False
 pygame.init()
 white = (255, 255, 255)
 black = (0, 0, 0)
@@ -29,13 +30,13 @@ leaf_green = (0, 255, 0)
 blue = (0, 0, 155)
 yellow = (155, 155, 0)
 buff_apple_colors = [red, green, blue, yellow]
+icon = pygame.image.load('Icon.png')
+pygame.display.set_icon(icon)
 display_width = 800
 display_height = 600
 gameDisplay = pygame.display.set_mode((display_width, display_height))
 pygame.display.set_caption('Snake :3')
-icon = pygame.image.load('C:/Users/Vadim/Desktop/New folder/GraphicsGale/pictures of that/Icon.png')
-pygame.display.set_icon(icon)
-headImg = pygame.image.load('C:/Users/Vadim/Desktop/New folder/GraphicsGale/pictures of that/SnakeHead.png')
+# headImg = pygame.image.load('C:/Users/Vadim/Desktop/New folder/GraphicsGale/pictures of that/SnakeHead.png')
 head_color = [[3, 4], [4, 4], [5, 4], [6, 4], [2, 5], [3, 5], [4, 5], [5, 5], [6, 5], [7, 5], [1, 6], [2, 6], [3, 6],
               [4, 6], [5, 6], [6, 6], [7, 6], [8, 6], [1, 7], [2, 7], [3, 7], [4, 7], [5, 7], [6, 7], [7, 7], [8, 7],
               [0, 8], [1, 8], [4, 8], [5, 8], [8, 8], [9, 8], [0, 9], [1, 9], [4, 9], [5, 9], [8, 9], [9, 9]]
@@ -49,8 +50,8 @@ apple_color = [[2, 3], [3, 3], [6, 3], [7, 3], [1, 4], [2, 4], [3, 4], [4, 4], [
 apple_leaf = [[1, 0], [2, 0], [7, 0], [1, 1], [2, 1], [3, 1], [6, 1], [7, 1], [8, 1], [2, 2], [3, 2], [4, 2], [5, 2],
               [6, 2], [7, 2], [4, 3], [5, 3]]
 apple_black = [[4, 9], [5, 9]]
-# buff = [fast, slow, scorex2, applex2, immortal]
-appleImg = pygame.image.load('C:/Users/Vadim/Desktop/New folder/GraphicsGale/pictures of that/Apple.png')
+buff_list = ["fast: ", "slow: ", "score x2: ", "apple x2: ", "immortality: "]
+# appleImg = pygame.image.load('C:/Users/Vadim/Desktop/New folder/GraphicsGale/pictures of that/Apple.png')
 block_size = 10
 AppleThickness = 10
 map_dying_coefficient = 10
@@ -59,6 +60,7 @@ gameExit = False
 FPS = 30
 frames_buff_works = 1000
 clock = pygame.time.Clock()
+verysmallfont = pygame.font.SysFont("comicsansms", 10)
 smallfont = pygame.font.SysFont("comicsansms", 25)
 medfont = pygame.font.SysFont("comicsansms", 50)
 largefont = pygame.font.SysFont("comicsansms", 80)
@@ -82,6 +84,10 @@ def pause():
 def score(score, player_number, color):
     text = smallfont.render("Score: "+str(score), True, color)
     gameDisplay.blit(text, [200*(player_number - 1) + 50, 3])
+def buff_draw(number, color, buff):
+    for buff_number, quantity in enumerate(buff):
+        text = pygame.font.SysFont("comicsansms", 17).render(buff_list[buff_number] + str(quantity), True, color)
+        gameDisplay.blit(text, [200*(number - 1) + 50, 30 + buff_number*20])
 def randAppleGen():
     found = False
     while not found:
@@ -105,6 +111,7 @@ def gameIntro():
         message_to_screen("If you run into yourself or the edges, you die!", black, 50)
         message_to_screen("Press C to play, P to pause, or Q to quit.", black, 180)
         message_to_screen("V to add players.", black, 210)
+        message_to_screen("created by: Vadim Shved", black, 290, 340, 'verysmall')
         message_to_screen("Players: " + str(players_number+1), black, 260, size='medium')
         for event in pygame.event.get():
                 if event.type == pygame.QUIT:
@@ -184,7 +191,9 @@ def apple_draw(apple_x, apple_y, color, size):
     else:
         pygame.draw.rect(gameDisplay, red, [randAppleX, randAppleY, size, size])
 def text_objects(text, color, size):
-    if size == 'small':
+    if size == 'verysmall':
+        textSurface = verysmallfont.render(text, True, color)
+    elif size == 'small':
         textSurface = smallfont.render(text, True, color)
     elif size == 'medium':
         textSurface = medfont.render(text, True, color)
@@ -420,18 +429,21 @@ def gameLoop(players_number):
                 player.snake_list.append(snakeHead)
                 for every_block in dead_blocks:
                     if player.lead_x == every_block[0] and player.lead_y == every_block[1]:
-                        player.death = True
+                        if player.immortality == False:
+                            player.death = True
                 block_black(all_blocks, block_coefficient, snakeHead, dead_blocks)
             for all_players in list_of_players:
                 for eachSegment in all_players.snake_list[:-1]:
                     if eachSegment == snakeHead:
-                        player.death = True
+                        if player.immortality == False:
+                            player.death = True
                 if all_players.death:
                     if player.lead_x >= all_players.apple_x and player.lead_x < all_players.apple_x + all_players.AppleThickness or\
                                                     player.lead_x + block_size > all_players.apple_x and player.lead_x + block_size <= all_players.apple_x + AppleThickness:
                         if player.lead_y >= all_players.apple_y and player.lead_y < all_players.apple_y + all_players.AppleThickness or\
                                                         player.lead_y + block_size > all_players.apple_y and player.lead_y + block_size <= all_players.apple_y + AppleThickness:
-                            player.death = True
+                            if player.immortality == False:
+                                player.death = True
             if player.death == True:
                 player.lead_x_change = 0
                 player.lead_y_change = 0
@@ -442,6 +454,20 @@ def gameLoop(players_number):
                         or player.lead_y + block_size > player.apple_y and player.lead_y + block_size <= player.apple_y + player.AppleThickness:
                     player.apple_x, player.apple_y = randAppleGen()
                     player.snake_length += player.score_per_apple
+            for number, buff_time in enumerate(player.buff):
+                if buff_time >= 1:
+                    player.buff[number] -= 1
+                    if player.buff[number] == 0:
+                        if number == 0:
+                            pass
+                        elif number == 1:
+                            pass
+                        elif number == 2:
+                            player.score_per_apple = 1
+                        elif number == 3:
+                            player.AppleThickness = AppleThickness
+                        elif number == 4:
+                            player.immortality = False
             if buff_apple == True:
                 if player.lead_x >= buff_apple_x and player.lead_x < buff_apple_x + AppleThickness \
                         or player.lead_x + block_size > buff_apple_x and player.lead_x + block_size <= buff_apple_x + AppleThickness:
@@ -449,34 +475,22 @@ def gameLoop(players_number):
                             or player.lead_y + block_size > buff_apple_y and player.lead_y + block_size <= buff_apple_y + AppleThickness:
                         buff_apple = False
                         # buff_number = random.randint(1, 5)
-                        buff_number = random.randint(3, 4)
+                        buff_number = random.randint(3, 5)
                         if buff_number == 1:
-                            player.buff[buff_number] += int(frames_buff_works*0.3)
+                            player.buff[buff_number-1] += int(frames_buff_works*0.3)
                         elif buff_number == 2:
-                            player.buff[buff_number] += int(frames_buff_works*0.4)
+                            player.buff[buff_number-1] += int(frames_buff_works*0.4)
                         elif buff_number == 3:
-                            player.buff[buff_number] += int(frames_buff_works)
+                            player.buff[buff_number-1] += int(frames_buff_works)
                             player.score_per_apple = 2
                         elif buff_number == 4:
-                            player.buff[buff_number] += int(frames_buff_works*0.5)
+                            player.buff[buff_number-1] += int(frames_buff_works*0.5)
                             player.AppleThickness = AppleThickness*2
                         elif buff_number == 5:
-                            player.buff[buff_number] += int(frames_buff_works*0.2)
-            for number, time in enumerate(player.buff):
-                if time >= 1:
-                    time -= 1
-                    if time == 0:
-                        if number == 1:
-                            pass
-                        elif number == 2:
-                            pass
-                        elif number == 3:
-                            player.score_per_apple = 1
-                        elif number == 4:
-                            player.AppleThickness = AppleThickness
-                        elif number == 5:
-                            pass
+                            player.buff[buff_number-1] += int(frames_buff_works*0.2)
+                            player.immortality = True
             score(player.snake_length - 1, player.number, player.color)
+            buff_draw(player.number, player.color, player.buff)
             apple_draw(player.apple_x, player.apple_y, player.color, player.AppleThickness)
             snake(block_size, player.snake_list, player.color, player.direction)
         gameOver = death_check(list_of_players)
