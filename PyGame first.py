@@ -6,7 +6,7 @@ class Snake:
     def __init__(self, number, lead_x, lead_y, color):
         self.number = number
         self.snake_list = []
-        self.buff = [0, 0, 0, 0, 0]
+        self.buff = [0, 0, 0, 0]
         self.lead_x = lead_x
         self.lead_y = lead_y
         self.lead_x_change = 0
@@ -50,7 +50,7 @@ apple_color = [[2, 3], [3, 3], [6, 3], [7, 3], [1, 4], [2, 4], [3, 4], [4, 4], [
 apple_leaf = [[1, 0], [2, 0], [7, 0], [1, 1], [2, 1], [3, 1], [6, 1], [7, 1], [8, 1], [2, 2], [3, 2], [4, 2], [5, 2],
               [6, 2], [7, 2], [4, 3], [5, 3]]
 apple_black = [[4, 9], [5, 9]]
-buff_list = ["fast: ", "slow: ", "score x2: ", "apple x2: ", "immortality: "]
+buff_list = ["slow: ", "score x2: ", "apple x2: ", "immortality: "]
 # appleImg = pygame.image.load('C:/Users/Vadim/Desktop/New folder/GraphicsGale/pictures of that/Apple.png')
 block_size = 10
 AppleThickness = 10
@@ -58,7 +58,8 @@ map_dying_coefficient = 10
 dead_blocks_number = 10
 gameExit = False
 FPS = 30
-frames_buff_works = 1000
+frames_buff_works = 2000
+chance_of_buff_apple = 1000  # chance is c/1000
 clock = pygame.time.Clock()
 verysmallfont = pygame.font.SysFont("comicsansms", 10)
 smallfont = pygame.font.SysFont("comicsansms", 25)
@@ -361,6 +362,83 @@ def controls(list_of_players):
                             list_of_players[3].lead_x_change = 0
             if event.key == pygame.K_p:
                 pause()
+def player_loop(list_of_players, dead_blocks, all_blocks, block_coefficient, buff_apple_x, buff_apple_y, buff_apple):
+    for player in list_of_players:
+        if player.buff[0] % 2 == 0:
+            if player.lead_x >= display_width or player.lead_x < 0 \
+                    or player.lead_y >= display_height or player.lead_y < 0:
+                player.death = True
+            player.lead_x += player.lead_x_change
+            player.lead_y += player.lead_y_change
+            if len(player.snake_list) > player.snake_length:
+                del player.snake_list[0]
+            if player.death == False:
+                snakeHead = []
+                snakeHead.append(player.lead_x)
+                snakeHead.append(player.lead_y)
+                player.snake_list.append(snakeHead)
+                for every_block in dead_blocks:
+                    if player.lead_x == every_block[0] and player.lead_y == every_block[1]:
+                        if player.immortality == False:
+                            player.death = True
+                block_black(all_blocks, block_coefficient, snakeHead, dead_blocks)
+                for all_players in list_of_players:
+                    for eachSegment in all_players.snake_list[:-1]:
+                        if eachSegment == snakeHead:
+                            if player.immortality == False:
+                                player.death = True
+                    if all_players.death:
+                        if player.lead_x >= all_players.apple_x and player.lead_x < all_players.apple_x + all_players.AppleThickness or\
+                                                        player.lead_x + block_size > all_players.apple_x and player.lead_x + block_size <= all_players.apple_x + AppleThickness:
+                            if player.lead_y >= all_players.apple_y and player.lead_y < all_players.apple_y + all_players.AppleThickness or\
+                                                            player.lead_y + block_size > all_players.apple_y and player.lead_y + block_size <= all_players.apple_y + AppleThickness:
+                                if player.immortality == False:
+                                    player.death = True
+            if player.death == True:
+                player.lead_x_change = 0
+                player.lead_y_change = 0
+                player.color = black
+            if player.lead_x >= player.apple_x and player.lead_x < player.apple_x + player.AppleThickness \
+                    or player.lead_x + block_size > player.apple_x and player.lead_x + block_size <= player.apple_x + player.AppleThickness:
+                if player.lead_y >= player.apple_y and player.lead_y < player.apple_y + player.AppleThickness \
+                        or player.lead_y + block_size > player.apple_y and player.lead_y + block_size <= player.apple_y + player.AppleThickness:
+                    player.apple_x, player.apple_y = randAppleGen()
+                    player.snake_length += player.score_per_apple
+            if buff_apple == True:
+                if player.lead_x >= buff_apple_x and player.lead_x < buff_apple_x + AppleThickness \
+                        or player.lead_x + block_size > buff_apple_x and player.lead_x + block_size <= buff_apple_x + AppleThickness:
+                    if player.lead_y >= buff_apple_y and player.lead_y < buff_apple_y + AppleThickness \
+                            or player.lead_y + block_size > buff_apple_y and player.lead_y + block_size <= buff_apple_y + AppleThickness:
+                        buff_apple = False
+                        buff_number = random.randint(1, 4)
+                        if buff_number == 1:
+                            player.buff[buff_number-1] += int(frames_buff_works*0.4)
+                        elif buff_number == 2:
+                            player.buff[buff_number-1] += int(frames_buff_works)
+                            player.score_per_apple = 2
+                        elif buff_number == 3:
+                            player.buff[buff_number-1] += int(frames_buff_works*0.5)
+                            player.AppleThickness = AppleThickness*2
+                        elif buff_number == 4:
+                            player.buff[buff_number-1] += int(frames_buff_works*0.2)
+                            player.immortality = True
+        for number, buff_time in enumerate(player.buff):
+                if buff_time >= 1:
+                    player.buff[number] -= 1
+                    if player.buff[number] == 0:
+                        if number == 0:
+                            pass
+                        elif number == 1:
+                            player.score_per_apple = 1
+                        elif number == 2:
+                            player.AppleThickness = AppleThickness
+                        elif number == 3:
+                            player.immortality = False
+        score(player.snake_length - 1, player.number, player.color)
+        buff_draw(player.number, player.color, player.buff)
+        apple_draw(player.apple_x, player.apple_y, player.color, player.AppleThickness)
+        snake(block_size, player.snake_list, player.color, player.direction)
+        return buff_apple
 def gameLoop(players_number):
     gameExit = False
     gameOver = False
@@ -405,7 +483,9 @@ def gameLoop(players_number):
                         gameIntro()
         controls(list_of_players)
         if buff_apple == False:
-            random_number = random.randint(1, 1000)
+            buff_apple_x = -100
+            buff_apple_y = -100
+            random_number = random.randint(chance_of_buff_apple, 1000)
             if random_number == 1000:
                 buff_apple = True
                 buff_apple_x, buff_apple_y = randAppleGen()
@@ -414,85 +494,7 @@ def gameLoop(players_number):
         if buff_apple == True:
             buff_apple_color_number += 1
             apple_draw(buff_apple_x, buff_apple_y, buff_apple_colors[buff_apple_color_number % 4], AppleThickness)
-        for player in list_of_players:
-            if player.lead_x >= display_width or player.lead_x < 0 \
-                    or player.lead_y >= display_height or player.lead_y < 0:
-                player.death = True
-            player.lead_x += player.lead_x_change
-            player.lead_y += player.lead_y_change
-            if len(player.snake_list) > player.snake_length:
-                del player.snake_list[0]
-            if player.death == False:
-                snakeHead = []
-                snakeHead.append(player.lead_x)
-                snakeHead.append(player.lead_y)
-                player.snake_list.append(snakeHead)
-                for every_block in dead_blocks:
-                    if player.lead_x == every_block[0] and player.lead_y == every_block[1]:
-                        if player.immortality == False:
-                            player.death = True
-                block_black(all_blocks, block_coefficient, snakeHead, dead_blocks)
-            for all_players in list_of_players:
-                for eachSegment in all_players.snake_list[:-1]:
-                    if eachSegment == snakeHead:
-                        if player.immortality == False:
-                            player.death = True
-                if all_players.death:
-                    if player.lead_x >= all_players.apple_x and player.lead_x < all_players.apple_x + all_players.AppleThickness or\
-                                                    player.lead_x + block_size > all_players.apple_x and player.lead_x + block_size <= all_players.apple_x + AppleThickness:
-                        if player.lead_y >= all_players.apple_y and player.lead_y < all_players.apple_y + all_players.AppleThickness or\
-                                                        player.lead_y + block_size > all_players.apple_y and player.lead_y + block_size <= all_players.apple_y + AppleThickness:
-                            if player.immortality == False:
-                                player.death = True
-            if player.death == True:
-                player.lead_x_change = 0
-                player.lead_y_change = 0
-                player.color = black
-            if player.lead_x >= player.apple_x and player.lead_x < player.apple_x + player.AppleThickness \
-                    or player.lead_x + block_size > player.apple_x and player.lead_x + block_size <= player.apple_x + player.AppleThickness:
-                if player.lead_y >= player.apple_y and player.lead_y < player.apple_y + player.AppleThickness \
-                        or player.lead_y + block_size > player.apple_y and player.lead_y + block_size <= player.apple_y + player.AppleThickness:
-                    player.apple_x, player.apple_y = randAppleGen()
-                    player.snake_length += player.score_per_apple
-            for number, buff_time in enumerate(player.buff):
-                if buff_time >= 1:
-                    player.buff[number] -= 1
-                    if player.buff[number] == 0:
-                        if number == 0:
-                            pass
-                        elif number == 1:
-                            pass
-                        elif number == 2:
-                            player.score_per_apple = 1
-                        elif number == 3:
-                            player.AppleThickness = AppleThickness
-                        elif number == 4:
-                            player.immortality = False
-            if buff_apple == True:
-                if player.lead_x >= buff_apple_x and player.lead_x < buff_apple_x + AppleThickness \
-                        or player.lead_x + block_size > buff_apple_x and player.lead_x + block_size <= buff_apple_x + AppleThickness:
-                    if player.lead_y >= buff_apple_y and player.lead_y < buff_apple_y + AppleThickness \
-                            or player.lead_y + block_size > buff_apple_y and player.lead_y + block_size <= buff_apple_y + AppleThickness:
-                        buff_apple = False
-                        # buff_number = random.randint(1, 5)
-                        buff_number = random.randint(3, 5)
-                        if buff_number == 1:
-                            player.buff[buff_number-1] += int(frames_buff_works*0.3)
-                        elif buff_number == 2:
-                            player.buff[buff_number-1] += int(frames_buff_works*0.4)
-                        elif buff_number == 3:
-                            player.buff[buff_number-1] += int(frames_buff_works)
-                            player.score_per_apple = 2
-                        elif buff_number == 4:
-                            player.buff[buff_number-1] += int(frames_buff_works*0.5)
-                            player.AppleThickness = AppleThickness*2
-                        elif buff_number == 5:
-                            player.buff[buff_number-1] += int(frames_buff_works*0.2)
-                            player.immortality = True
-            score(player.snake_length - 1, player.number, player.color)
-            buff_draw(player.number, player.color, player.buff)
-            apple_draw(player.apple_x, player.apple_y, player.color, player.AppleThickness)
-            snake(block_size, player.snake_list, player.color, player.direction)
+        buff_apple = player_loop(list_of_players, dead_blocks, all_blocks, block_coefficient, buff_apple_x, buff_apple_y, buff_apple)
         gameOver = death_check(list_of_players)
         pygame.display.update()
         clock.tick(FPS)
